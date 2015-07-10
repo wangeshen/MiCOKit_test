@@ -165,31 +165,31 @@ function ez_connect(device_id) {
     document.querySelector('#read').addEventListener('click', read);
 
     function led_on() {
-        client.publish(device_id+'/in/write', '{"rgbled-switch":true}');
+        client.publish(device_id+'/in/write', '{"rgbled_switch":true}');
     }
     document.querySelector('#led_on').addEventListener('touchstart', led_on);
     document.querySelector('#led_on').addEventListener('click', led_on);
 
     function led_off() {
-        client.publish(device_id+'/in/write', '{"rgbled-switch":false}');
+        client.publish(device_id+'/in/write', '{"rgbled_switch":false}');
     }
     document.querySelector('#led_off').addEventListener('touchstart', led_off);
     document.querySelector('#led_off').addEventListener('click', led_off);
 
     function led_red() {
-        client.publish(device_id+'/in/write', '{"rgbled-switch":true,"rgbled-hues":0, "rgbled-saturation":100, "rgbled-brightness":100}');
+        client.publish(device_id+'/in/write', '{"rgbled_switch":true,"rgbled_hues":0, "rgbled_saturation":100, "rgbled_brightness":100}');
     }
     document.querySelector('#led_red').addEventListener('touchstart', led_red);
     document.querySelector('#led_red').addEventListener('click', led_red);
 
     function led_green() {
-        client.publish(device_id+'/in/write', '{"rgbled-switch":true,"rgbled-hues":120, "rgbled-saturation":100, "rgbled-brightness":100}');
+        client.publish(device_id+'/in/write', '{"rgbled_switch":true,"rgbled_hues":120, "rgbled_saturation":100, "rgbled_brightness":100}');
     }
     document.querySelector('#led_green').addEventListener('touchstart', led_green);
     document.querySelector('#led_green').addEventListener('click', led_green);
 
     function led_blue() {
-        client.publish(device_id+'/in/write', '{"rgbled-switch":true,"rgbled-hues":240, "rgbled-saturation":100, "rgbled-brightness":100}');
+        client.publish(device_id+'/in/write', '{"rgbled_switch":true,"rgbled_hues":240, "rgbled_saturation":100, "rgbled_brightness":100}');
     }
     document.querySelector('#led_blue').addEventListener('touchstart', led_blue);
     document.querySelector('#led_blue').addEventListener('click', led_blue);
