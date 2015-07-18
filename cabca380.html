@@ -144,26 +144,6 @@ function ez_connect(device_id) {
     document.querySelector('#send2uart').addEventListener('touchstart', send2uart);
     document.querySelector('#send2uart').addEventListener('click', send2uart);
 
-    function write() {
-        if ( inputMessage.value.length == 0 ) return;
-
-        client.publish(device_id+'/in/write', inputMessage.value);
-        console.log(inputMessage.value);
-        inputMessage.value = '';
-    }
-    document.querySelector('#write').addEventListener('touchstart', write);
-    document.querySelector('#write').addEventListener('click', write);
-
-    function read() {
-        if ( inputMessage.value.length == 0 ) return;
-
-        client.publish(device_id+'/in/read', inputMessage.value);
-        console.log(inputMessage.value);
-        inputMessage.value = '';
-    }
-    document.querySelector('#read').addEventListener('touchstart', read);
-    document.querySelector('#read').addEventListener('click', read);
-
     function led_on() {
         client.publish(device_id+'/in/write', '{"rgbled-switch":true}');
     }
