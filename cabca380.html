@@ -43,8 +43,8 @@
 	      Send2Uart
 	    </button>
 	  </div>
-	<div id="temp" style="background:yellow; color:red"></div>
-	<div id="hum" style="background:yellow; color:red"></div>
+	<div id="temp"></div>
+	<div id="hum"></div>
 	<div class="button-bar">
 	  <a class="button" style="background:red; color:white" id="led_red">Red</a>
 	  <a class="button" style="background:green; color:white" id="led_green">Green</a>
@@ -125,7 +125,7 @@ function ez_connect(device_id) {
     }
     function onMessageArrived(message) {
         console.log(message.destinationName + ': ' + message.payloadString);
-        if ( message.destinationName == device_id + '/out/read' ) {
+        if ( message.destinationName == (device_id + '/out/read') ) {
         	var json_obj = JSON.parse(message.payloadString); 
         	if ( json_obj != null ) {
         		for (var k in json_ojb) {
