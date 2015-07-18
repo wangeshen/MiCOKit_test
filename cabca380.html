@@ -42,12 +42,6 @@
 	    <button class="button button-small button-royal" id="send2uart">
 	      Uart
 	    </button>
-	    <button class="button button-small button-energized" id="read">
-	      Read
-	    </button>
-	    <button class="button button-small button-energized" id="write">
-	      Write
-	    </button>
 	  </div>
 
 	<div class="button-bar">
@@ -129,7 +123,7 @@ function ez_connect(device_id) {
             console.log("onConnectionLost:"+responseObject.errorMessage);
     }
     function onMessageArrived(message) {
-        console.log(message.payloadString);
+        console.log(message.topic + ': ' + message.payloadString);
     }
 
     var inputMessage = document.getElementById('message');
