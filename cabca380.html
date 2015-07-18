@@ -35,8 +35,6 @@
 <div id="debug"></div>
 
 <div class="bar-footer" style="bottom:0;position:absolute;width:100%">
-	<div id="temp"></div>
-	<div id="hum"></div>
 	  <div class="item item-input-inset">
 	    <label class="item-input-wrapper">
 	      <input type="text" placeholder="message" id="message">
@@ -45,6 +43,8 @@
 	      Send2Uart
 	    </button>
 	  </div>
+	<div id="temp" style="background:yellow; color:red"></div>
+	<div id="hum" style="background:yellow; color:red"></div>
 	<div class="button-bar">
 	  <a class="button" style="background:red; color:white" id="led_red">Red</a>
 	  <a class="button" style="background:green; color:white" id="led_green">Green</a>
@@ -125,8 +125,20 @@ function ez_connect(device_id) {
     }
     function onMessageArrived(message) {
         console.log(message.destinationName + ': ' + message.payloadString);
-        document.getElementById('temp').innerHTML = 'T: ' + message.payloadString;
-        document.getElementById('hum').innerHTML = 'H: ' + message.payloadString;
+        if ( message.destinationName == device_id + '/out/read' ) {
+        	var json_obj = JSON.parse(message.payloadString); 
+        	if ( json_obj != null ) {
+        		for (var k in json_ojb) {
+        			if ( k == '17') {
+        		      		document.getElementById('temp').innerHTML = 'T: ' + json_obj[k];
+        			}
+        			else if ( k ==  '19'){
+        				document.getElementById('temp').innerHTML = 'H: ' + json_obj[k];
+        			}
+        			else{}
+        		};
+        	}
+        }
     }
 
     var inputMessage = document.getElementById('message');
