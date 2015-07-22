@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html ng-app="ionicApp">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width" />
+<title>MiCOKit</title>
+<link href="//code.ionicframework.com/1.0.0-beta.13/css/ionic.css" rel="stylesheet">
+<style>
+#debug {
+    margin-top:44px;
+    background-color: white;
+    height: 300px;
+    overflow: scroll;
+    color: black;
+    font-size: 12px;
+}
+#debug p {
+    padding: 3px 5px;
+    word-wrap: break-word;
+}
+.gray {
+    background-color: #ddd;
+}
+#debug span {
+    display: block;
+    word-wrap: break-word;
+    margin-bottom: 2px;
+}
+</style>
+</head>
+<body>
+<div class="bar bar-header bar-assertive">
+  <h1 class="title" id="device_id"></h1>
+</div>
+<div id="debug"></div>
+
+<div class="bar-footer" style="bottom:0;position:absolute;width:100%">
+	<div class="button-bar">
+	  <a class="button" style="background:red; color:white" id="led_red">Red</a>
+	  <a class="button" style="background:green; color:white" id="led_green">Green</a>
+	  <a class="button" style="background:blue; color:white" id="led_blue">Blue</a>
+	</div>
+	<div class="button-bar">
+	  <a class="button" style="background:white; color:black" id="led_on">On</a>
+	  <a class="button" style="background:black; color:white" id="led_off">Off</a>
+	</div>
+</div>
+
+<script src="http://api.easylink.io/assets/js/mqttws31.js"></script>
+<script>
+function getParameterByName(name) {
+    var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+var device_id = getParameterByName('device_id');
+if ( device_id !== null ){
+    ez_connect(device_id);
+}
+
+function dump_obj(myObject) {
+    var s = '';
+    for (var property in myObject) {
+        s += '<span>' + property +": " + myObject[property] + '</span>';
+    }
+    return s;
+}
+
+var i = 0;
+console.log = (function(old_funct, div_log) {
+    return function(text) {
+        old_funct(text);
+        var p = '';
+        if (i%2 == 0)
+            p = '<p>';
+        else
+            p = '<p class=\'gray\'>';
+
+        if (typeof text === "object")
+            div_log.innerHTML += p + JSON.stringify(text) + '</p>';
+        else
+            div_log.innerHTML += p + text + '</p>';
+
+        div_log.scrollTop = div_log.scrollHeight;
+        i += 1;
+    };
+} (console.log.bind(console), document.getElementById("debug")));
+console.error = console.debug = console.info =  console.log
+
+function ez_connect(device_id) {
+    var access_token = getParameterByName('access_token');
+
+    document.getElementById('device_id').innerHTML = device_id;
+
+    var wsbroker = "api.easylink.io";  //mqtt websocket enabled broker
+    var wsport = 1983 // port for above
+    var client = new Paho.MQTT.Client(wsbroker, wsport, "v1-web-" + parseInt(Math.random() * 1000000, 10));
+
+    client.onConnectionLost = onConnectionLost;
+    client.onMessageArrived = onMessageArrived;
+    client.connect({onSuccess:onConnect});
+
+    function onConnect() {
+        // Once a connection has been made, make a subscription and send a message.
+        client.publish = function(topic, payload) {
+            message = new Paho.MQTT.Message(payload);
+            message.destinationName = topic;
+            client.send(message);
+        }
+        console.log("App connected!");
+        client.subscribe(device_id+'/out/#', {qos: 0});
+    }
+    function onConnectionLost(responseObject) {
+        if (responseObject.errorCode !== 0)
+            console.log("App connection lost:"+responseObject.errorMessage);
+    }
+    function onMessageArrived(message) {
+    	if  (message.destinationName == device_id + '/out/_online') {
+    		if (message.payloadString == '1')  {
+    			console.log("Device online.");
+    		}
+    		else {
+    			console.log("Device offline.");
+    		}
+    	}
+    	else {
+    		console.log(message.payloadString);
+    	}
+    }
+
+    function led_on() {
+        client.publish(device_id+'/in', '{"rgbled_switch":true}');
+        console.log(device_id+'/in: ' + '{"rgbled_switch":true}');
+    }
+    document.querySelector('#led_on').addEventListener('click', led_on);
+
+    function led_off() {
+        client.publish(device_id+'/in', '{"rgbled_switch":false}');
+        console.log(device_id+'/in: ' + '{"rgbled_switch":false}');
+    }
+    document.querySelector('#led_off').addEventListener('click', led_off);
+
+    function led_red() {
+        client.publish(device_id+'/in', '{"rgbled_switch":true,"rgbled_hues":0, "rgbled_saturation":100, "rgbled_brightness":100}');
+        console.log(device_id+'/in: ' + '{"rgbled_switch":true,"rgbled_hues":0, "rgbled_saturation":100, "rgbled_brightness":100}');
+    }
+    document.querySelector('#led_red').addEventListener('click', led_red);
+
+    function led_green() {
+        client.publish(device_id+'/in', '{"rgbled_switch":true,"rgbled_hues":120, "rgbled_saturation":100, "rgbled_brightness":100}');
+        console.log(device_id+'/in: ' + '{"rgbled_switch":true,"rgbled_hues":120, "rgbled_saturation":100, "rgbled_brightness":100}');
+    }
+    document.querySelector('#led_green').addEventListener('click', led_green);
+
+    function led_blue() {
+        client.publish(device_id+'/in', '{"rgbled_switch":true,"rgbled_hues":240, "rgbled_saturation":100, "rgbled_brightness":100}');
+        console.log(device_id+'/in: ' +  '{"rgbled_switch":true,"rgbled_hues":240, "rgbled_saturation":100, "rgbled_brightness":100}');
+    }
+    document.querySelector('#led_blue').addEventListener('click', led_blue);
+}
+
+</script>
+</body>
+</html>
