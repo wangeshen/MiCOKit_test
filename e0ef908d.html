@@ -1,0 +1,304 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <title>温湿度02</title>
+    <style>
+        *{margin:0px;padding:0px;}
+        body{
+            background-color: #EBEBEB;
+            background-size: cover;
+            font-family: 黑体;
+            font-size: 13px;
+        }
+        .content{
+            margin:1px;
+            padding:1px;
+        }
+        .title{
+            margin: 10px 12px 5px 12px;
+            background-color: #FFFFFF; 
+            text-align: center;
+            padding: 7px 0;
+            box-shadow: 3px 3px 3px #e1e1e1;
+        }
+        .title span{
+            color: #000000;
+            /*color: #229B32;*/
+            font-size: 18px;
+            /*font-weight: bolder;*/
+            position: relative;
+        }
+        .temphumishow{
+            margin: 5px 12px;
+            height: 94px;
+            background-color: #FFFFFF;
+            text-align: center;
+            box-shadow: 3px 3px 3px #e1e1e1;
+        }
+        .temphumishow table tr td img{
+            height: 50px;
+        }
+        .tempcls{
+            font-size: 30px;
+            color: #e13e4e; 
+        }
+        .humicls{
+            font-size: 30px;
+            color: #80a72d; 
+        }
+        .switrgbhow{
+            margin: 5px 12px;
+            height: 114px;
+            background-color: #FFFFFF;
+            text-align: center;
+            box-shadow: 3px 3px 3px #e1e1e1;
+        }        
+        .switrgbhow table tr td img{
+            height: 70px;
+        }
+        .humihis{
+            margin: 5px 12px;
+            height: 195px;
+            background-color: #FFFFFF;
+            text-align: center;
+            box-shadow: 3px 3px 3px #e1e1e1;
+        }
+/*        .hrline{
+             width: 1px;
+             color: #cccccc;
+             height: 70px;
+        }*/
+    </style>
+</head>
+<body>
+    <div class="content">
+        <div class="title">
+          <span>温湿度实时检测</span>
+        </div>        
+        <div class="temphumishow">
+            <table width="100%" height="94px">
+                <tr align="center">
+                    <td valign="middle" align="right"><img src="./image/01-temperature.png" alt=""></td>
+                    <td valign="middle" align="left"><span>温度</span><br/><span class="tempcls" id="tempid">28℃</span></td>
+                    <td valign="middle" align="right"><img src="./image/01-humidity.png" alt=""></td>
+                    <td valign="middle" align="left"><span>湿度</span><br/><span class="humicls" id="humiid">42%</span></td>
+                </tr>
+            </table>
+        </div>        
+        <div class="switrgbhow">
+            <table width="100%">
+                <tr align="center" height="114px">
+                    <td valign="middle"><img src="./image/03-turn-on.png" alt=""><br/><span>开关</span></td>
+                    <!-- <td valign="middle"><hr class="hrline" size="80" /></td> -->
+                    <td valign="middle"><img src="./image/02-red.png" alt=""><br/><span>温度阀值</span></td>
+                </tr>                
+            </table>
+        </div>
+        <div class="humihis">
+            <div id="device_id"></div>
+            <div id="debug"></div>
+        </div>
+    </div>
+
+<!--   <div class="bar-footer" style="bottom:0;position:absolute;width:100%">
+     <div class="item item-input-inset">
+       <label class="item-input-wrapper">
+         <input type="text" placeholder="message" id="message">
+     </label> -->
+<!--      <button class="button button-small button-royal" id="send2uart">
+         Uart
+     </button> -->
+     <!-- </div> -->
+
+<!--  <div class="button-bar">
+     <a class="button" style="background:red; color:white" id="led_red">Red</a>
+     <a class="button" style="background:green; color:white" id="led_green">Green</a>
+     <a class="button" style="background:blue; color:white" id="led_blue">Blue</a>
+ </div>
+ <div class="button-bar">
+     <a class="button" style="background:white; color:black" id="led_on">On</a>
+     <a class="button" style="background:black; color:white" id="led_off">Off</a>
+ </div> -->
+</div>
+<script src="./js/mqttws31.js"></script>
+<script src="./js/jquery-2.1.3.js"></script>
+<script>
+    // 从url中获取某个参数的值
+    function getParameterByName(name) {
+        var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+        return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+    }
+    // 得到设备ID
+    var device_id = getParameterByName('device_id');
+    // 如果设备ID不为空，则执行连接MQTT的操作
+    if ( device_id !== null ){
+        ez_connect(device_id);
+    }
+
+    // function dump_obj(myObject) {
+    //     var s = '';
+    //     for (var property in myObject) {
+    //         s += '<span>' + property +": " + myObject[property] + '</span>';
+    //     }
+    //     return s;
+    // }
+
+    // 连接MQTT服务
+    function ez_connect(device_id) {
+        // 获取access_token
+        // access_token是公众号的全局唯一票据，公众号调用各接口时都需使用access_token。
+        // 正常情况下access_token有效期为7200秒，重复获取将导致上次获取的access_token失效
+        var access_token = getParameterByName('access_token');
+
+        document.getElementById('device_id').innerHTML = device_id;
+
+        // websocket连接
+        // wsbroker:host
+        // wsport:端口 默认1983
+        // Client-ID ： v1_web_[MAC]  //版本号_app_手机MAC(必须是12位小写)
+        var wsbroker = "api.easylink.io";  //mqtt websocket enabled broker
+        var wsport = 1983 // port for above
+        var client = new Paho.MQTT.Client(wsbroker, wsport, "v1-web-" + parseInt(Math.random() * 1000000, 12));
+
+        // 基本参数配置
+        // 连接丢失所对应的callback函数
+        client.onConnectionLost = onConnectionLost;
+        // 消息到达所对应的callback函数
+        client.onMessageArrived = onMessageArrived;
+        // 连接成功所对应的callback函数
+        client.connect({onSuccess:onConnect});
+
+        // 连接成功
+        function onConnect() {
+            var subtopic = device_id+'/out/#';
+            // Once a connection has been made, make a subscription and send a message.
+            // 向某个通道发送指令
+            // topic：通道
+            // commond：指令
+            client.publish = function(topic, commond) {
+                console.log("现在执行-->:"+commond);
+                message = new Paho.MQTT.Message(commond);
+                message.destinationName = topic;
+                client.send(message);
+            }
+            console.log("device_id:"+device_id);
+            console.log("onConnect");
+            client.subscribe(subtopic, {qos: 0});
+        }
+        // 连接丢失
+        function onConnectionLost(responseObject) {
+            if (responseObject.errorCode !== 0)
+                console.log("onConnectionLost:"+responseObject.errorMessage);
+        }
+        // 消息到达
+        var msgindex = 1;
+        var msgjson;
+        var tempval;
+        function onMessageArrived(message) {
+            // console.log(message.topic + ': ' +  message.payloadString);
+            if(msgindex > 12 ){
+                msgindex =1;
+                document.getElementById('debug').innerHTML = "";
+            }
+            msgindex++;
+            console.log('消息到达: ' +  message.payloadString);
+            msgjson = $.parseJSON(message.payloadString);
+            tempval = msgjson.dht11_temperature;
+            if("undefined" != typeof(tempval)){
+                $("#tempid").text(tempval+"℃");
+                $("#humiid").text(msgjson.dht11_humidity+'%');
+            }
+            if(tempval > 29){
+                led_red();
+            }else if(tempval < 30 && (tempval > 19){
+                led_green();
+            }else if(tempval < 20){
+                led_blue();
+            }
+        }
+
+        // // 串口数据发送部分
+        // var inputMessage = document.getElementById('message');
+        // // 将消息发送到指定的通道
+        // function send2uart() {
+        //     if ( inputMessage.value.length == 0 ) return;
+        //     var topic = device_id+'/in/write';
+        //     var commond = '{"11":"' + inputMessage.value + '"}';
+        //     client.publish(topic, commond);
+        //     console.log(inputMessage.value);
+        //     inputMessage.value = '';
+        // }
+        // // document.querySelector('#send2uart').addEventListener('touchstart', send2uart);
+        // document.querySelector('#send2uart').addEventListener('click', send2uart);
+
+        // function led_on() {
+        //     var topic = device_id+'/in/write';
+        //     var commond = '{"rgbled_switch":true}';
+        //     client.publish(topic, commond);
+        // }
+        // // document.querySelector('#led_on').addEventListener('touchstart', led_on);
+        // document.querySelector('#led_on').addEventListener('click', led_on);
+
+        // function led_off() {
+        //     var topic = device_id+'/in/write';
+        //     var commond = '{"rgbled_switch":false}';
+        //     client.publish(topic, commond);
+        // }
+        // // document.querySelector('#led_off').addEventListener('touchstart', led_off);
+        // document.querySelector('#led_off').addEventListener('click', led_off);
+
+        function led_red() {
+            console.log('开红灯');
+            var topic = device_id+'/in';
+            var commond = '{"rgbled_switch":true,"rgbled_hues":0, "rgbled_saturation":100, "rgbled_brightness":100}'; 
+            client.publish(topic, commond);
+        }
+        // // document.querySelector('#led_red').addEventListener('touchstart', led_red);
+        // document.querySelector('#led_red').addEventListener('click', led_red);
+
+        function led_green() {
+            console.log('开蓝灯');
+            var topic = device_id+'/in';
+            var commond = '{"rgbled_switch":true,"rgbled_hues":120, "rgbled_saturation":100, "rgbled_brightness":100}'; 
+            client.publish(topic, commond);
+        }
+        // // document.querySelector('#led_green').addEventListener('touchstart', led_green);
+        // document.querySelector('#led_green').addEventListener('click', led_green);
+
+        function led_blue() {
+            console.log('开绿灯');
+            var topic = device_id+'/in';
+            var commond = '{"rgbled_switch":true,"rgbled_hues":240, "rgbled_saturation":100, "rgbled_brightness":100}'; 
+            client.publish(topic, commond);
+        }
+        // // document.querySelector('#led_blue').addEventListener('touchstart', led_blue);
+        // document.querySelector('#led_blue').addEventListener('click', led_blue);
+    }
+
+    // 日志打印在页面的部分    
+    var i = 0;
+    console.log = (function(old_funct, div_log) {
+        return function(text) {
+            old_funct(text);
+            var p = '';
+            if (i%2 == 0)
+                p = '<p>';
+            else
+                p = '<p class=\'gray\'>';
+
+            if (typeof text === "object")
+                div_log.innerHTML += p + JSON.stringify(text) + '</p>';
+            else
+                div_log.innerHTML += p + text + '</p>';
+
+            div_log.scrollTop = div_log.scrollHeight;
+            i += 1;
+        };
+    } (console.log.bind(console), document.getElementById("debug")));
+    console.error = console.debug = console.info =  console.log;
+
+</script>
+</body>
+</html>
