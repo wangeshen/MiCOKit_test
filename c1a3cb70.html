@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width" />
+<title>EasyCloud</title>
+<link href="//api.easylink.io/static/ionic/css/ionic.min.css" rel="stylesheet">
+</head>
+<body>
+<ul class="list">
+  <label class="item item-input">
+    <input type="text" placeholder="Device ID" id="device_id" ng-model="device_id" disabled>
+  </label>
+
+<div class="list">
+  <!--div class="item range range-positive">
+    <i class="icon ion-ios7-lightbulb"></i>
+    <input type="range" class="custom" id="brightness" name="brightness" min="0" max="100" value="0">
+    <i class="icon ion-ios7-lightbulb-outline"></i>
+  </div-->
+  <div class="item range range-calm">
+    <i class="icon ion-ios7-moon"></i>
+    <input type="range" id="white" name="white" min="0" max="100" value="50">
+    <i class="icon ion-ios7-moon-outline"></i>
+  </div>
+  <div class="item range range-energized">
+    <i class="icon ion-ios7-sunny"></i>
+    <input type="range" id="yellow" name="yellow" min="0" max="360" value="128">
+    <i class="icon ion-ios7-sunny-outline"></i>
+  </div>
+</div>
+
+</ul>
+<div class="row row-center">
+<div class="col col-center">
+</div>
+
+<script src="zepto.min.js"></script>
+<script src="detect.js"></script>
+<script src="print_r.js"></script>
+<script>
+    function getParameterByName(name) {
+        var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+        return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+    }
+
+    var access_token = getParameterByName('access_token');
+    var device_id = getParameterByName('device_id');
+
+    $('#device_id').val(device_id);
+    var lastcolor = '';
+
+    setInterval(function() {
+          var white = parseInt($('#white').val());
+          var yellow = parseInt($('#yellow').val());
+          //var brightness = parseInt($('#brightness').val());
+          //var color = JSON.stringify({"cmd":"on", "white": white, "yellow": yellow, "brightness": brightness });
+          //var color = [1,yellow,white,brightness].join(',');
+          var color = [1,yellow,white].join(',');
+          if ( lastcolor != color ) {
+            lastcolor = color;
+            $.ajax({
+              type: 'GET',
+              dataType: 'jsonp',
+              url: 'http://api.easylink.io/device/in.js',
+              data: {'access_token':access_token, 'device_id':device_id, 'msg': color}
+            });
+          }
+    }, 1000);
+
+    if (!!$.os.ios) 
+        $('input[type="range"]').on('touchstart MSPointerDown pointerdown touchmove MSPointerMove pointermove', function(e){
+            if ( !this.hasOwnProperty('touchValue') ) {
+                $this = $(this);
+                var offset = $this.offset();
+                var width = $this.width();
+                var length = $this.attr('max') - $this.attr('min');
+                var countE = $('#count');
+                this.touchValue = function(touch) {
+                    return ((touch.pageX - offset.left) / width) * length;
+                }
+            }
+
+            this.value = this.touchValue(e.touches[0]);
+            e.stopPropagation();
+        });
+
+</script>
+</body>
+</html>

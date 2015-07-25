@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html ng-app="ionicApp">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width" />
+<title>FogCloud</title>
+<link href="//api.easylink.io/bower_components/ionic/css/ionic.min.css" rel="stylesheet">
+<script src="//api.easylink.io/bower_components/ionic/js/ionic.bundle.min.js"></script>
+<style>
+body{margin:0;padding:0}
+</style>
+</head>
+<body>
+<ul class="list">
+  <label class="item item-input">
+    <input type="text" placeholder="Device ID" id="device_id">
+  </label>
+  <li class="item item-toggle">
+     开关 
+     <label class="toggle toggle-positive">
+       <input type="checkbox" checked="checked" id="switch_button">
+       <div class="track">
+         <div class="handle"></div>
+       </div>
+     </label>
+  </li>
+</ul>
+</div>
+<canvas id="colorPicker1"></canvas>
+
+<script src="zepto.min.js"></script>
+<script type="text/javascript" src="colorPicker.js"></script>
+<script>
+angular.module('ionicApp', ['ionic']);
+
+function sendMsg(access_token, device_id, color) {
+    $.ajax({
+      type: 'GET',
+      dataType: 'jsonp',
+      url: 'http://api.easylink.io/device/in.js',
+      data: {'access_token':access_token, 'device_id':device_id, 'msg': color}
+    });
+}
+
+function getParameterByName(name) {
+    var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+var access_token = getParameterByName('access_token');
+var device_id = getParameterByName('device_id');
+var alias = getParameterByName('alias');
+var showName = alias ? alias : device_id;
+
+$('#device_id').val(showName);
+
+var width = (window.innerWidth < window.innerHeight ? window.innerWidth: window.innerHeight);
+$('#colorPicker1').attr('width',width).attr('height',width);
+var colorPicker = new colorPicker(
+    document.getElementById('colorPicker1'), {
+        h:.5, s:.5, v:.5, bgcolor:'#fff'
+    }
+);
+
+var lastcolor = '';
+setInterval(function() {
+  var color = colorPicker.getColorHSV();
+  var color = [1, parseInt(color.h*360), parseInt(color.s*100), parseInt(color.v*100)].join(',');
+  if ( lastcolor != color ) {
+    lastcolor = color;
+    $("#switch_button").prop("checked", true);
+    sendMsg(access_token, device_id, color);
+    /* $.ajax({
+      type: 'GET',
+      dataType: 'jsonp',
+      url: 'http://api.easylink.io/device/in.js',
+      data: {'access_token':access_token, 'device_id':device_id, 'msg': color}
+    }); */
+  }
+}, 500);
+
+$("#switch_button").click(function(){
+    var state = $(this).prop("checked");
+    var color = colorPicker.getColorHSV();
+    if (state == false) {
+        //colorPicker.setColorHSV(0, 0, 0);
+        color = [1,parseInt(color.h*360), parseInt(color.s*100),0].join(',');
+    } else {
+        
+        var color = [1, parseInt(color.h*360), parseInt(color.s*100), parseInt(color.v*100)].join(',');
+    }
+    
+    sendMsg(access_token, device_id, color);
+    
+});
+
+</script>
+</body>
+</html>

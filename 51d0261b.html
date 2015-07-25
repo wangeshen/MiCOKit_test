@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html ng-app="ionicApp">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width" />
+<title>EasyCloud</title>
+<link href="//api.easylink.io/bower_components/ionic/css/ionic.min.css" rel="stylesheet">
+<style>
+#debug {
+    margin-top:44px;
+    background-color: white;
+    height: 300px;
+    overflow: scroll;
+    color: black;
+    font-size: 12px;
+}
+#debug p {
+    padding: 3px 5px;
+    word-wrap: break-word;
+}
+.gray {
+    background-color: #ddd;
+}
+#debug span {
+    display: block;
+    word-wrap: break-word;
+    margin-bottom: 2px;
+}
+</style>
+</head>
+<body>
+<div class="bar bar-header bar-light">
+  <h1 class="title" id="device_id"></h1>
+</div>
+<div id="debug"></div>
+<div class="bar-footer" style="bottom:0;position:absolute;width:100%">
+  <div class="item item-input-inset">
+    <label class="item-input-wrapper">
+      <input type="text" placeholder="message" id="message">
+    </label>
+    <button class="button button-small" id="send">
+      Send
+    </button>
+  </div>
+</div>
+
+<script src="http://api.easylink.io/assets/js/mqttws31.js"></script>
+<script>
+function getParameterByName(name) {
+    var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+var device_id = getParameterByName('device_id');
+if ( device_id !== null ){
+    ez_connect(device_id);
+}
+
+function dump_obj(myObject) {
+    var s = '';
+    for (var property in myObject) {
+        s += '<span>' + property +": " + myObject[property] + '</span>';
+    }
+    return s;
+}
+
+var i = 0;
+console.log = (function(old_funct, div_log) {
+    return function(text) {
+        old_funct(text);
+        var p = '';
+        if (i%2 == 0)
+            p = '<p>';
+        else
+            p = '<p class=\'gray\'>';
+
+        if (typeof text === "object")
+            div_log.innerHTML += p + JSON.stringify(text) + '</p>';
+        else
+            div_log.innerHTML += p + text + '</p>';
+
+        div_log.scrollTop = div_log.scrollHeight;
+        i += 1;
+    };
+} (console.log.bind(console), document.getElementById("debug")));
+console.error = console.debug = console.info =  console.log
+
+function ez_connect(device_id) {
+    var access_token = getParameterByName('access_token');
+
+    document.getElementById('device_id').innerHTML = device_id;
+
+    var wsbroker = "api.easylink.io";  //mqtt websocket enabled broker
+    var wsport = 1983 // port for above
+    var client = new Paho.MQTT.Client(wsbroker, wsport, "v1-web-" + parseInt(Math.random() * 1000000, 10));
+
+    client.onConnectionLost = onConnectionLost;
+    client.onMessageArrived = onMessageArrived;
+    client.connect({onSuccess:onConnect});
+
+    function onConnect() {
+        // Once a connection has been made, make a subscription and send a message.
+        client.publish = function(topic, payload) {
+            message = new Paho.MQTT.Message(payload);
+            message.destinationName = topic;
+            client.send(message);
+        }
+        console.log("onConnect");
+        client.subscribe(device_id+'/out', {qos: 0});
+    }
+    function onConnectionLost(responseObject) {
+        if (responseObject.errorCode !== 0)
+            console.log("onConnectionLost:"+responseObject.errorMessage);
+    }
+    function onMessageArrived(message) {
+        console.log(message.payloadString);
+    }
+
+    var inputMessage = document.getElementById('message');
+
+    function send() {
+        if ( inputMessage.value.length == 0 ) return;
+
+        client.publish(device_id+'/in', inputMessage.value);
+        console.log(inputMessage.value);
+        inputMessage.value = '';
+    }
+    document.querySelector('#send').addEventListener('touchstart', send);
+    document.querySelector('#send').addEventListener('click', send);
+}
+
+</script>
+</body>
+</html>
