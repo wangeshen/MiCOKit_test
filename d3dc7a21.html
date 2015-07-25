@@ -1,3 +1,8 @@
+<!--
+  product id:      d3dc7a21
+  product name: MiCOKit-3288-demo_wechat_rgbled
+-->
+
 <!DOCTYPE html>
 <html ng-app="ionicApp">
 <head>
@@ -35,24 +40,15 @@
   <div id="debug"></div>
 
   <div class="bar-footer" style="bottom:0;position:absolute;width:100%">
-     <div class="item item-input-inset">
-       <label class="item-input-wrapper">
-         <input type="text" placeholder="message" id="message">
-     </label>
-     <button class="button button-small button-royal" id="send2uart">
-         Uart
-     </button>
- </div>
-
- <div class="button-bar">
-     <a class="button" style="background:red; color:white" id="led_red">Red</a>
-     <a class="button" style="background:green; color:white" id="led_green">Green</a>
-     <a class="button" style="background:blue; color:white" id="led_blue">Blue</a>
- </div>
- <div class="button-bar">
-     <a class="button" style="background:white; color:black" id="led_on">On</a>
-     <a class="button" style="background:black; color:white" id="led_off">Off</a>
- </div>
+     <div class="button-bar">
+         <a class="button" style="background:red; color:white" id="led_red">Red</a>
+         <a class="button" style="background:green; color:white" id="led_green">Green</a>
+         <a class="button" style="background:blue; color:white" id="led_blue">Blue</a>
+     </div>
+     <div class="button-bar">
+         <a class="button" style="background:white; color:black" id="led_on">On</a>
+         <a class="button" style="background:black; color:white" id="led_off">Off</a>
+     </div>
 </div>
 
 <script src="http://api.easylink.io/assets/js/mqttws31.js"></script>
@@ -115,8 +111,7 @@
                 message.destinationName = topic;
                 client.send(message);
             }
-            console.log("device_id:"+device_id);
-            console.log("onConnect");
+            console.log("App connected.");
             client.subscribe(subtopic, {qos: 0});
         }
         // 连接丢失
@@ -128,20 +123,6 @@
         function onMessageArrived(message) {
             console.log(message.topic + ': ' +  message.payloadString);
         }
-
-        // 串口数据发送部分
-        var inputMessage = document.getElementById('message');
-        // 将消息发送到指定的通道
-        function send2uart() {
-            if ( inputMessage.value.length == 0 ) return;
-            var topic = device_id+'/in/write';
-            var commond = '{"11":"' + inputMessage.value + '"}';
-            client.publish(topic, commond);
-            console.log(inputMessage.value);
-            inputMessage.value = '';
-        }
-        // document.querySelector('#send2uart').addEventListener('touchstart', send2uart);
-        document.querySelector('#send2uart').addEventListener('click', send2uart);
 
         function led_on() {
             var topic = device_id+'/in/write';
