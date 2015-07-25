@@ -1,3 +1,8 @@
+<!--
+  product id: 01799d5b
+  product name: MiCOKit_Enjoy
+-->
+
 <!DOCTYPE html>
 <html ng-app="ionicApp">
 <head>
@@ -121,7 +126,7 @@ function ez_connect(device_id) {
             message.destinationName = topic;
             client.send(message);
         }
-        console.log("onConnect");
+        console.log("App connected.");
         client.subscribe(device_id+'/out/#', {qos: 0});
     }
     function onConnectionLost(responseObject) {
@@ -129,7 +134,17 @@ function ez_connect(device_id) {
             console.log("onConnectionLost:"+responseObject.errorMessage);
     }
     function onMessageArrived(message) {
-        console.log(message.payloadString);
+        if  (message.destinationName == device_id + '/out/_online') {
+            if (message.payloadString == '1')  {
+                console.log("Device online.");
+            }
+            else {
+                console.log("Device offline.");
+            }
+        }
+        else {
+            console.log(message.payloadString);
+        }
     }
 
     var inputMessage = document.getElementById('message');
@@ -141,7 +156,7 @@ function ez_connect(device_id) {
         console.log(inputMessage.value);
         inputMessage.value = '';
     }
-    document.querySelector('#send2uart').addEventListener('touchstart', send2uart);
+    //document.querySelector('#send2uart').addEventListener('touchstart', send2uart);
     document.querySelector('#send2uart').addEventListener('click', send2uart);
 
     function write() {
@@ -151,7 +166,7 @@ function ez_connect(device_id) {
         console.log(inputMessage.value);
         inputMessage.value = '';
     }
-    document.querySelector('#write').addEventListener('touchstart', write);
+    //document.querySelector('#write').addEventListener('touchstart', write);
     document.querySelector('#write').addEventListener('click', write);
 
     function read() {
@@ -161,37 +176,37 @@ function ez_connect(device_id) {
         console.log(inputMessage.value);
         inputMessage.value = '';
     }
-    document.querySelector('#read').addEventListener('touchstart', read);
+    //document.querySelector('#read').addEventListener('touchstart', read);
     document.querySelector('#read').addEventListener('click', read);
 
     function led_on() {
         client.publish(device_id+'/in/write', '{"4":true}');
     }
-    document.querySelector('#led_on').addEventListener('touchstart', led_on);
+    //document.querySelector('#led_on').addEventListener('touchstart', led_on);
     document.querySelector('#led_on').addEventListener('click', led_on);
 
     function led_off() {
         client.publish(device_id+'/in/write', '{"4":false}');
     }
-    document.querySelector('#led_off').addEventListener('touchstart', led_off);
+    //document.querySelector('#led_off').addEventListener('touchstart', led_off);
     document.querySelector('#led_off').addEventListener('click', led_off);
 
     function led_red() {
         client.publish(device_id+'/in/write', '{"4":true,"5":0, "6":100, "7":100}');
     }
-    document.querySelector('#led_red').addEventListener('touchstart', led_red);
+    //document.querySelector('#led_red').addEventListener('touchstart', led_red);
     document.querySelector('#led_red').addEventListener('click', led_red);
 
     function led_green() {
         client.publish(device_id+'/in/write', '{"4":true,"5":120, "6":100, "7":100}');
     }
-    document.querySelector('#led_green').addEventListener('touchstart', led_green);
+    //document.querySelector('#led_green').addEventListener('touchstart', led_green);
     document.querySelector('#led_green').addEventListener('click', led_green);
 
     function led_blue() {
         client.publish(device_id+'/in/write', '{"4":true,"5":240, "6":100, "7":100}');
     }
-    document.querySelector('#led_blue').addEventListener('touchstart', led_blue);
+    //document.querySelector('#led_blue').addEventListener('touchstart', led_blue);
     document.querySelector('#led_blue').addEventListener('click', led_blue);
 }
 
